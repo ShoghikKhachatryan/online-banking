@@ -28,4 +28,18 @@ public class BankSystemService {
         account.setAmount(account.getAmount().add(amount));
         bankSystemRepository.save(account);
     }
+
+    @Transactional
+    @Modifying
+    public boolean withdraw(Long accountId, BigDecimal amount) {
+        Account account = bankSystemRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        if(account.getAmount().compareTo(amount) < 0) {
+            return false;
+        }
+
+        account.setAmount(account.getAmount().subtract(amount));
+        bankSystemRepository.save(account);
+
+        return true;
+    }
 }
