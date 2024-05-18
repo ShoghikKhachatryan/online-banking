@@ -8,6 +8,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.math.BigDecimal;
 
 @Controller
 public class BankSystemController {
@@ -22,15 +25,26 @@ public class BankSystemController {
 
     //click "Open new account" open form
     @GetMapping("/accounts/new")
-    public String createNewAccountForm(Model model){
+    public String openAccountForm(Model model){
         model.addAttribute("account", new Account());
         return "new-account";
     }
 
     //click "open Account" save account
     @PostMapping("/accounts/new")
-    public String saveNewAccount(@ModelAttribute Account account) {
+    public String openAccount(@ModelAttribute Account account) {
         bankSystemService.saveAccount(account);
         return "redirect:/";
+    }
+
+    @GetMapping("/transactions/deposit")
+    public String depositForm() {
+        return "deposit";
+    }
+
+    @PostMapping("/transactions/deposit")
+    public String deposit(@RequestParam("accountNumber") Long id, @RequestParam("amount") BigDecimal amount) {
+        bankSystemService.deposit(id, amount);
+        return "deposit";
     }
 }
