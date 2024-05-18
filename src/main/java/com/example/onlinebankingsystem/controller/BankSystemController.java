@@ -43,8 +43,8 @@ public class BankSystemController {
     }
 
     @PostMapping("/transactions/deposit")
-    public String deposit(@RequestParam("accountNumber") Long id, @RequestParam("amount") BigDecimal amount) {
-        bankSystemService.deposit(id, amount);
+    public String deposit(@RequestParam("accountNumber") Long accountNumber, @RequestParam("amount") BigDecimal amount) {
+        bankSystemService.deposit(accountNumber, amount);
         return "redirect:/";
     }
 
@@ -54,10 +54,25 @@ public class BankSystemController {
     }
 
     @PostMapping("/transactions/withdraw")
-    public String withdraw(@RequestParam("accountNumber") Long id, @RequestParam("amount") BigDecimal amount, Model model) {
-        if (!bankSystemService.withdraw(id, amount)) {
+    public String withdraw(@RequestParam("accountNumber") Long accountNumber, @RequestParam("amount") BigDecimal amount, Model model) {
+        if (!bankSystemService.withdraw(accountNumber, amount)) {
             model.addAttribute("message", "You don't have so much money.");
             return "withdraw";
+        }
+        return "redirect:/";
+    }
+
+    @GetMapping("/transactions/transfer")
+    public String transferForm() {
+        return "transfer";
+    }
+
+    @PostMapping("/transactions/transfer")
+    public String transfer(@RequestParam("fromAccount") Long fromAccount, @RequestParam("toAccount") Long toAccount,
+                           @RequestParam("amount") BigDecimal amount, Model model) {
+        if (!bankSystemService.transfer(fromAccount, toAccount ,amount)) {
+            model.addAttribute("message", fromAccount + " account don't have so much money.");
+            return "transfer";
         }
         return "redirect:/";
     }

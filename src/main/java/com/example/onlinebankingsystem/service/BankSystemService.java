@@ -42,4 +42,22 @@ public class BankSystemService {
 
         return true;
     }
+
+    @Transactional
+    @Modifying
+    public boolean transfer(Long fromAccountId, Long toAccountId,BigDecimal amount) {
+        Account fromAccount = bankSystemRepository.findById(fromAccountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        Account toAccount = bankSystemRepository.findById(toAccountId).orElseThrow(() -> new RuntimeException("Account not found"));
+
+        if(fromAccount.getAmount().compareTo(amount) < 0) {
+            return false;
+        }
+
+        toAccount.setAmount(toAccount.getAmount().add(amount));
+        bankSystemRepository.save(toAccount);
+        fromAccount.setAmount(fromAccount.getAmount().subtract(amount));
+        bankSystemRepository.save(fromAccount);
+
+        return true;
+    }
 }
