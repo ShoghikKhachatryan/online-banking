@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "account")
-//using lombok
 @NoArgsConstructor
 @Getter
 @Setter

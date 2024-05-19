@@ -12,9 +12,11 @@ import java.math.BigDecimal;
 @Service
 public class BankSystemService {
 
+    // HK: please see comment about constructor injection.
     @Autowired
     private BankSystemRepository bankSystemRepository;
 
+    // HK: better service name would be createAccount
     //save account
     // TODO I think here we don't need transactional
     public Account saveAccount(Account account) {
@@ -33,7 +35,7 @@ public class BankSystemService {
     @Modifying
     public boolean withdraw(Long accountId, BigDecimal amount) {
         Account account = bankSystemRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
-        if(account.getAmount().compareTo(amount) < 0) {
+        if (account.getAmount().compareTo(amount) < 0) {
             return false;
         }
 
@@ -49,7 +51,7 @@ public class BankSystemService {
         Account fromAccount = bankSystemRepository.findById(fromAccountId).orElseThrow(() -> new RuntimeException("Account not found"));
         Account toAccount = bankSystemRepository.findById(toAccountId).orElseThrow(() -> new RuntimeException("Account not found"));
 
-        if(fromAccount.getAmount().compareTo(amount) < 0) {
+        if (fromAccount.getAmount().compareTo(amount) < 0) {
             return false;
         }
 
