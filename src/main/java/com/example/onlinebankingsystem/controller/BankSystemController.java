@@ -1,5 +1,7 @@
 package com.example.onlinebankingsystem.controller;
 
+import com.example.onlinebankingsystem.exception.NotEnoughAmountException;
+import com.example.onlinebankingsystem.exception.NotFoundException;
 import com.example.onlinebankingsystem.model.Account;
 import com.example.onlinebankingsystem.service.BankSystemService;
 import org.springframework.stereotype.Controller;
@@ -24,13 +26,21 @@ public class BankSystemController {
 
     private static final String HOME_PAGE = "home";
 
-    private static final String NEW_ACCOUNT_PAGE = "new_account";
+    private static final String NEW_ACCOUNT_PAGE = "new-account";
 
     private static final String DEPOSIT_PAGE = "deposit";
 
     private static final String ACCOUNT_ATTRIBUTE = "account";
 
+    private static final String AMOUNT_ATTRIBUTE = "amount";
+
     private static final String ACCOUNT_NUMBER_ATTRIBUTE = "accountNumber";
+
+    private static final String FROM_ACCOUNT_ATTRIBUTE = "fromAccount";
+
+    private static final String TO_ACCOUNT_ATTRIBUTE = "toAccount";
+
+    private static final String MESSAGE_ATTRIBUTE = "message";
 
     // - easier to see dependencies and amount of them
     // - easier to mock in some cases
@@ -45,15 +55,14 @@ public class BankSystemController {
     }
 
     @GetMapping("/accounts/new")
-    public String openAccountForm(Model model){
+    public String creatAccountForm(Model model) {
         model.addAttribute(ACCOUNT_ATTRIBUTE, new Account());
         return NEW_ACCOUNT_PAGE;
     }
 
-
     @PostMapping("/accounts/new")
-    public String openAccount(@ModelAttribute Account account) {
-        bankSystemService.saveAccount(account);
+    public String creatAccount(@ModelAttribute Account account) {
+        bankSystemService.createAccount(account);
         return REDIRECT_HOME;
     }
 
@@ -63,8 +72,15 @@ public class BankSystemController {
     }
 
     @PostMapping("/transactions/deposit")
-    public String deposit(@RequestParam(ACCOUNT_NUMBER_ATTRIBUTE) Long accountNumber, @RequestParam(ACCOUNT_ATTRIBUTE) BigDecimal amount) {
-        bankSystemService.deposit(accountNumber, amount);
+    public String deposit(@RequestParam(ACCOUNT_NUMBER_ATTRIBUTE) Long accountNumber,
+                          @RequestParam(AMOUNT_ATTRIBUTE) BigDecimal amount,
+                          Model model) {
+        try {
+            bankSystemService.deposit(accountNumber, amount);
+        } catch (NotFoundException ex) {
+            model.addAttribute(MESSAGE_ATTRIBUTE, ex.getMessage());
+            return DEPOSIT_PAGE;
+        }
         return REDIRECT_HOME;
     }
 
@@ -74,9 +90,14 @@ public class BankSystemController {
     }
 
     @PostMapping("/transactions/withdraw")
-    public String withdraw(@RequestParam(ACCOUNT_NUMBER_ATTRIBUTE) Long accountNumber, @RequestParam(ACCOUNT_ATTRIBUTE) BigDecimal amount, Model model) {
-        if (!bankSystemService.withdraw(accountNumber, amount)) {
-            model.addAttribute("message", "You don't have so much money.");
+    public String withdraw(@RequestParam(ACCOUNT_NUMBER_ATTRIBUTE) Long accountNumber,
+                           @RequestParam(AMOUNT_ATTRIBUTE) BigDecimal amount,
+                           Model model) {
+
+        try {
+            bankSystemService.withdraw(accountNumber, amount);
+        } catch (NotEnoughAmountException | NotFoundException ex) {
+            model.addAttribute(MESSAGE_ATTRIBUTE, ex.getMessage());
             return WITHDRAW_PAGE;
         }
         return REDIRECT_HOME;
@@ -88,10 +109,14 @@ public class BankSystemController {
     }
 
     @PostMapping("/transactions/transfer")
-    public String transfer(@RequestParam("fromAccount") Long fromAccount, @RequestParam("toAccount") Long toAccount,
-                           @RequestParam("amount") BigDecimal amount, Model model) {
-        if (!bankSystemService.transfer(fromAccount, toAccount ,amount)) {
-            model.addAttribute("message", fromAccount + " account don't have so much money.");
+    public String transfer(@RequestParam(FROM_ACCOUNT_ATTRIBUTE) Long fromAccount,
+                           @RequestParam(TO_ACCOUNT_ATTRIBUTE) Long toAccount,
+                           @RequestParam(AMOUNT_ATTRIBUTE) BigDecimal amount,
+                           Model model) {
+        try {
+            bankSystemService.transfer(fromAccount, toAccount, amount);
+        } catch (NotEnoughAmountException | NotFoundException ex) {
+            model.addAttribute(MESSAGE_ATTRIBUTE, ex.getMessage());
             return TRANSFER_PAGE;
         }
         return REDIRECT_HOME;

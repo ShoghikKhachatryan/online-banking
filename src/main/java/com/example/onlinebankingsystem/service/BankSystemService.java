@@ -1,9 +1,10 @@
 package com.example.onlinebankingsystem.service;
 
+import com.example.onlinebankingsystem.exception.NotEnoughAmountException;
+import com.example.onlinebankingsystem.exception.NotFoundException;
 import com.example.onlinebankingsystem.model.Account;
 import com.example.onlinebankingsystem.repository.BankSystemRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 
@@ -12,54 +13,50 @@ import java.math.BigDecimal;
 @Service
 public class BankSystemService {
 
-    // HK: please see comment about constructor injection.
-    @Autowired
-    private BankSystemRepository bankSystemRepository;
+    private final BankSystemRepository bankSystemRepository;
 
-    // HK: better service name would be createAccount
-    //save account
-    // TODO I think here we don't need transactional
-    public Account saveAccount(Account account) {
+    public BankSystemService(BankSystemRepository bankSystemRepository) {
+        this.bankSystemRepository = bankSystemRepository;
+    }
+
+    @Transactional
+    public Account createAccount(Account account) {
         return bankSystemRepository.save(account);
     }
 
     @Transactional
     @Modifying
     public void deposit(Long accountId, BigDecimal amount) {
-        Account account = bankSystemRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        Account account = bankSystemRepository.findById(accountId).orElseThrow(() -> new NotFoundException(accountId));
         account.setAmount(account.getAmount().add(amount));
         bankSystemRepository.save(account);
     }
 
     @Transactional
     @Modifying
-    public boolean withdraw(Long accountId, BigDecimal amount) {
-        Account account = bankSystemRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+    public void withdraw(Long accountId, BigDecimal amount) {
+        Account account = bankSystemRepository.findById(accountId).orElseThrow(() -> new NotFoundException(accountId));
         if (account.getAmount().compareTo(amount) < 0) {
-            return false;
+            throw new NotEnoughAmountException(amount);
         }
 
         account.setAmount(account.getAmount().subtract(amount));
         bankSystemRepository.save(account);
-
-        return true;
     }
 
     @Transactional
     @Modifying
-    public boolean transfer(Long fromAccountId, Long toAccountId,BigDecimal amount) {
-        Account fromAccount = bankSystemRepository.findById(fromAccountId).orElseThrow(() -> new RuntimeException("Account not found"));
-        Account toAccount = bankSystemRepository.findById(toAccountId).orElseThrow(() -> new RuntimeException("Account not found"));
+    public void transfer(Long fromAccountId, Long toAccountId, BigDecimal amount) {
+        Account fromAccount = bankSystemRepository.findById(fromAccountId).orElseThrow(() -> new NotFoundException(fromAccountId));
+        Account toAccount = bankSystemRepository.findById(toAccountId).orElseThrow(() -> new NotFoundException(toAccountId));
 
         if (fromAccount.getAmount().compareTo(amount) < 0) {
-            return false;
+            throw new NotEnoughAmountException(amount);
         }
 
         toAccount.setAmount(toAccount.getAmount().add(amount));
-        bankSystemRepository.save(toAccount);
         fromAccount.setAmount(fromAccount.getAmount().subtract(amount));
+        bankSystemRepository.save(toAccount);
         bankSystemRepository.save(fromAccount);
-
-        return true;
     }
 }

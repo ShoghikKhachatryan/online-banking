@@ -1,4 +1,4 @@
-package com.example.onlinebankingsystem;
+package com.example.onlinebankingsystem.helper;
 
 import com.example.onlinebankingsystem.model.AccountType;
 import jakarta.persistence.AttributeConverter;
