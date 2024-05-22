@@ -3,7 +3,9 @@ package com.example.onlinebankingsystem.service;
 import com.example.onlinebankingsystem.exception.NotEnoughAmountException;
 import com.example.onlinebankingsystem.exception.NotFoundException;
 import com.example.onlinebankingsystem.model.Account;
+import com.example.onlinebankingsystem.model.AccountType;
 import com.example.onlinebankingsystem.repository.BankSystemRepository;
+import com.example.onlinebankingsystem.util.AccountNumberGenerator;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
@@ -21,42 +23,48 @@ public class BankSystemService {
 
     @Transactional
     public Account createAccount(Account account) {
+        account.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
+        System.out.println("\n\n for save account." + account);
         return bankSystemRepository.save(account);
     }
 
     @Transactional
     @Modifying
-    public void deposit(Long accountId, BigDecimal amount) {
-        Account account = bankSystemRepository.findById(accountId).orElseThrow(() -> new NotFoundException(accountId));
-        account.setAmount(account.getAmount().add(amount));
+    public void openNewAccount(AccountType accountType, BigDecimal initialDeposit) {
+        Account account = new Account();
+        account.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
+        account.setAccountType(accountType);
+        account.setBalance(initialDeposit);
+        System.out.println("\n\n for save account." + account);
         bankSystemRepository.save(account);
     }
 
     @Transactional
     @Modifying
-    public void withdraw(Long accountId, BigDecimal amount) {
-        Account account = bankSystemRepository.findById(accountId).orElseThrow(() -> new NotFoundException(accountId));
-        if (account.getAmount().compareTo(amount) < 0) {
-            throw new NotEnoughAmountException(amount);
-        }
+    public void deposit(String accountNumber, BigDecimal amount) {
+        Account account = bankSystemRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new NotFoundException(accountNumber));
+        account.setBalance(account.getBalance().add(amount));
 
-        account.setAmount(account.getAmount().subtract(amount));
         bankSystemRepository.save(account);
     }
 
     @Transactional
     @Modifying
-    public void transfer(Long fromAccountId, Long toAccountId, BigDecimal amount) {
-        Account fromAccount = bankSystemRepository.findById(fromAccountId).orElseThrow(() -> new NotFoundException(fromAccountId));
-        Account toAccount = bankSystemRepository.findById(toAccountId).orElseThrow(() -> new NotFoundException(toAccountId));
+    public void withdraw(String accountNumber, BigDecimal amount) {
+        Account account = bankSystemRepository.findByAccountNumber(accountNumber).orElseThrow(() -> new NotFoundException(accountNumber));
 
-        if (fromAccount.getAmount().compareTo(amount) < 0) {
+        if (account.getBalance().compareTo(amount) < 0) {
             throw new NotEnoughAmountException(amount);
         }
 
-        toAccount.setAmount(toAccount.getAmount().add(amount));
-        fromAccount.setAmount(fromAccount.getAmount().subtract(amount));
-        bankSystemRepository.save(toAccount);
-        bankSystemRepository.save(fromAccount);
+        account.setBalance(account.getBalance().subtract(amount));
+        bankSystemRepository.save(account);
+    }
+
+    @Transactional
+    @Modifying
+    public void transfer(String fromAccountNumber, String toAccountNumber, BigDecimal amount) {
+        withdraw(fromAccountNumber, amount);
+        deposit(toAccountNumber, amount);
     }
 }

@@ -4,6 +4,7 @@ import com.example.onlinebankingsystem.exception.NotEnoughAmountException;
 import com.example.onlinebankingsystem.exception.NotFoundException;
 import com.example.onlinebankingsystem.model.Account;
 import com.example.onlinebankingsystem.service.BankSystemService;
+import com.example.onlinebankingsystem.util.AccountNumberGenerator;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,7 +63,10 @@ public class BankSystemController {
 
     @PostMapping("/accounts/new")
     public String creatAccount(@ModelAttribute Account account) {
+        System.out.println("\n\naccount " + account);
+        account.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
         bankSystemService.createAccount(account);
+        //bankSystemService.openNewAccount(account.getAccountType(), account.getBalance());
         return REDIRECT_HOME;
     }
 
@@ -72,7 +76,7 @@ public class BankSystemController {
     }
 
     @PostMapping("/transactions/deposit")
-    public String deposit(@RequestParam(ACCOUNT_NUMBER_ATTRIBUTE) Long accountNumber,
+    public String deposit(@RequestParam(ACCOUNT_NUMBER_ATTRIBUTE) String accountNumber,
                           @RequestParam(AMOUNT_ATTRIBUTE) BigDecimal amount,
                           Model model) {
         try {
@@ -90,7 +94,7 @@ public class BankSystemController {
     }
 
     @PostMapping("/transactions/withdraw")
-    public String withdraw(@RequestParam(ACCOUNT_NUMBER_ATTRIBUTE) Long accountNumber,
+    public String withdraw(@RequestParam(ACCOUNT_NUMBER_ATTRIBUTE) String accountNumber,
                            @RequestParam(AMOUNT_ATTRIBUTE) BigDecimal amount,
                            Model model) {
 
@@ -109,8 +113,8 @@ public class BankSystemController {
     }
 
     @PostMapping("/transactions/transfer")
-    public String transfer(@RequestParam(FROM_ACCOUNT_ATTRIBUTE) Long fromAccount,
-                           @RequestParam(TO_ACCOUNT_ATTRIBUTE) Long toAccount,
+    public String transfer(@RequestParam(FROM_ACCOUNT_ATTRIBUTE) String  fromAccount,
+                           @RequestParam(TO_ACCOUNT_ATTRIBUTE) String toAccount,
                            @RequestParam(AMOUNT_ATTRIBUTE) BigDecimal amount,
                            Model model) {
         try {

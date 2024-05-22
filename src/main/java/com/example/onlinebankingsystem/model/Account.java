@@ -20,13 +20,18 @@ public class Account {
     private Long id;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private AccountType accountType;
 
-    @Column(nullable = false)
-    private BigDecimal amount;
+    // provided by the bank system
+    @Column(unique = true, nullable = false)
+    private String accountNumber;
 
-    public Account(AccountType accountType, BigDecimal amount) {
+    @Column(nullable = false)
+    private BigDecimal balance;
+
+    public Account(AccountType accountType, BigDecimal balance) {
         this.accountType = accountType;
-        this.amount = amount;
+        this.balance = balance;
     }
 }
