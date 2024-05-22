@@ -22,20 +22,9 @@ public class BankSystemService {
     }
 
     @Transactional
-    public Account createAccount(Account account) {
-        account.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
-        System.out.println("\n\n for save account." + account);
-        return bankSystemRepository.save(account);
-    }
-
-    @Transactional
     @Modifying
-    public void openNewAccount(AccountType accountType, BigDecimal initialDeposit) {
-        Account account = new Account();
+    public void openNewAccount(Account account) {
         account.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
-        account.setAccountType(accountType);
-        account.setBalance(initialDeposit);
-        System.out.println("\n\n for save account." + account);
         bankSystemRepository.save(account);
     }
 

@@ -63,10 +63,9 @@ public class BankSystemController {
 
     @PostMapping("/accounts/new")
     public String creatAccount(@ModelAttribute Account account) {
-        System.out.println("\n\naccount " + account);
         account.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
-        bankSystemService.createAccount(account);
-        //bankSystemService.openNewAccount(account.getAccountType(), account.getBalance());
+        bankSystemService.openNewAccount(account);
+
         return REDIRECT_HOME;
     }
 
