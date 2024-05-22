@@ -4,6 +4,7 @@ import com.example.onlinebankingsystem.exception.NotEnoughAmountException;
 import com.example.onlinebankingsystem.exception.NotFoundException;
 import com.example.onlinebankingsystem.repository.BankSystemRepository;
 import com.example.onlinebankingsystem.model.Account;
+import com.example.onlinebankingsystem.util.AccountNumberGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,10 +23,8 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BankSystemServiceTest {
-    @Test
-    void createAccount() {
-    }
-   /* @Mock
+
+    @Mock
     private BankSystemRepository mockedBankSystemRepository;
 
     @InjectMocks
@@ -38,6 +37,7 @@ class BankSystemServiceTest {
         account = new Account();
         account.setId(1L);
         account.setBalance(BigDecimal.valueOf(1000));
+        account.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
     }
 
     @AfterEach
@@ -46,125 +46,127 @@ class BankSystemServiceTest {
     }
 
     @Test
-    void createAccount() {
+    void openNewAccount() {
         when(mockedBankSystemRepository.save(any(Account.class))).thenReturn(account);
 
-        Account createdAccount = mockedBankSystemService.createAccount(account);
+        mockedBankSystemService.openNewAccount(account);
 
-        assertEquals(account, createdAccount);
         verify(mockedBankSystemRepository).save(account);
     }
 
     @Test
     void onExistingAccountDepositWorksAsExpected() {
-        when(mockedBankSystemRepository.findById(account.getId())).thenReturn(Optional.of(account));
+        when(mockedBankSystemRepository.findByAccountNumber(account.getAccountNumber())).thenReturn(Optional.of(account));
         when(mockedBankSystemRepository.save(any(Account.class))).thenReturn(account);
 
-        mockedBankSystemService.deposit(account.getId(), BigDecimal.valueOf(1000));
+        mockedBankSystemService.deposit(account.getAccountNumber(), BigDecimal.valueOf(1000));
 
         assertEquals(account.getBalance(), BigDecimal.valueOf(2000));
         verify(mockedBankSystemRepository).save(account);
-        verify(mockedBankSystemRepository).findById(account.getId());
+        verify(mockedBankSystemRepository).findByAccountNumber(account.getAccountNumber());
     }
 
     @Test
     void onNonExistingAccountDepositThrowsException() {
-        assertThrows(NotFoundException.class, () -> mockedBankSystemService.deposit(account.getId(), BigDecimal.valueOf(1000)));
+        assertThrows(NotFoundException.class, () -> mockedBankSystemService.deposit(account.getAccountNumber(), BigDecimal.valueOf(1000)));
 
-        verify(mockedBankSystemRepository).findById(account.getId());
+        verify(mockedBankSystemRepository).findByAccountNumber(account.getAccountNumber());
     }
 
     @Test
     void onExistingAccountWithdrawWorksAsExpected() {
-        when(mockedBankSystemRepository.findById(account.getId())).thenReturn(Optional.of(account));
+        when(mockedBankSystemRepository.findByAccountNumber(account.getAccountNumber())).thenReturn(Optional.of(account));
         when(mockedBankSystemRepository.save(any(Account.class))).thenReturn(account);
 
-        mockedBankSystemService.withdraw(account.getId(), BigDecimal.valueOf(400));
+        mockedBankSystemService.withdraw(account.getAccountNumber(), BigDecimal.valueOf(400));
 
-        assertEquals(account.getAmount(), BigDecimal.valueOf(600));
+        assertEquals(account.getBalance(), BigDecimal.valueOf(600));
         verify(mockedBankSystemRepository).save(account);
-        verify(mockedBankSystemRepository).findById(account.getId());
+        verify(mockedBankSystemRepository).findByAccountNumber(account.getAccountNumber());
     }
 
     @Test
     void onNonExistingAccountWithdrawThrowsException() {
-        assertThrows(NotFoundException.class, () -> mockedBankSystemService.withdraw(account.getId(), BigDecimal.valueOf(400)));
+        assertThrows(NotFoundException.class, () -> mockedBankSystemService.withdraw(account.getAccountNumber(), BigDecimal.valueOf(400)));
 
-        verify(mockedBankSystemRepository).findById(account.getId());
+        verify(mockedBankSystemRepository).findByAccountNumber(account.getAccountNumber());
     }
 
     @Test
     void onNotEnoughAccountWithdrawThrowsException() {
-        when(mockedBankSystemRepository.findById(account.getId())).thenReturn(Optional.of(account));
+        when(mockedBankSystemRepository.findByAccountNumber(account.getAccountNumber())).thenReturn(Optional.of(account));
 
-        assertThrows(NotEnoughAmountException.class, () -> mockedBankSystemService.withdraw(account.getId(), BigDecimal.valueOf(2000)));
+        assertThrows(NotEnoughAmountException.class, () -> mockedBankSystemService.withdraw(account.getAccountNumber(), BigDecimal.valueOf(2000)));
 
-        verify(mockedBankSystemRepository).findById(account.getId());
+        verify(mockedBankSystemRepository).findByAccountNumber(account.getAccountNumber());
     }
 
     @Test
     void onExistingAccountTransferWorksAsExpected() {
         Account toAccount = new Account();
         toAccount.setId(2L);
-        toAccount.setAmount(BigDecimal.valueOf(400));
+        toAccount.setBalance(BigDecimal.valueOf(400));
+        toAccount.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
 
-        when(mockedBankSystemRepository.findById(account.getId())).thenReturn(Optional.of(account));
-        when(mockedBankSystemRepository.findById(toAccount.getId())).thenReturn(Optional.of(toAccount));
+        when(mockedBankSystemRepository.findByAccountNumber(account.getAccountNumber())).thenReturn(Optional.of(account));
+        when(mockedBankSystemRepository.findByAccountNumber(toAccount.getAccountNumber())).thenReturn(Optional.of(toAccount));
         when(mockedBankSystemRepository.save(account)).thenReturn(account);
         when(mockedBankSystemRepository.save(toAccount)).thenReturn(toAccount);
 
-        mockedBankSystemService.transfer(account.getId(), toAccount.getId(), BigDecimal.valueOf(400));
+        mockedBankSystemService.transfer(account.getAccountNumber(), toAccount.getAccountNumber(), BigDecimal.valueOf(400));
 
-        assertEquals(account.getAmount(), BigDecimal.valueOf(600));
-        assertEquals(toAccount.getAmount(), BigDecimal.valueOf(800));
+        assertEquals(account.getBalance(), BigDecimal.valueOf(600));
+        assertEquals(toAccount.getBalance(), BigDecimal.valueOf(800));
 
         verify(mockedBankSystemRepository).save(account);
-        verify(mockedBankSystemRepository).findById(account.getId());
+        verify(mockedBankSystemRepository).findByAccountNumber(account.getAccountNumber());
         verify(mockedBankSystemRepository).save(toAccount);
-        verify(mockedBankSystemRepository).findById(toAccount.getId());
+        verify(mockedBankSystemRepository).findByAccountNumber(toAccount.getAccountNumber());
     }
 
     @Test
     void onNonExistingToAccountTransferThrowsException() {
         Account toAccount = new Account();
         toAccount.setId(2L);
-        toAccount.setAmount(BigDecimal.valueOf(400));
+        toAccount.setBalance(BigDecimal.valueOf(400));
+        toAccount.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
 
-        when(mockedBankSystemRepository.findById(account.getId())).thenReturn(Optional.of(account));
+        when(mockedBankSystemRepository.findByAccountNumber(account.getAccountNumber())).thenReturn(Optional.of(account));
+        when(mockedBankSystemRepository.save(account)).thenReturn(account);
 
-        assertThrows(NotFoundException.class, () -> mockedBankSystemService.transfer(account.getId(), toAccount.getId(), BigDecimal.valueOf(400)));
 
-        verify(mockedBankSystemRepository).findById(account.getId());
-        verify(mockedBankSystemRepository).findById(toAccount.getId());
+        assertThrows(NotFoundException.class, () -> mockedBankSystemService.transfer(account.getAccountNumber(), toAccount.getAccountNumber(), BigDecimal.valueOf(400)));
+
+        verify(mockedBankSystemRepository).findByAccountNumber(account.getAccountNumber());
+        verify(mockedBankSystemRepository).save(account);
+        verify(mockedBankSystemRepository).findByAccountNumber(toAccount.getAccountNumber());
     }
 
     @Test
     void onNonExistingFromAccountTransferThrowsException() {
         Account toAccount = new Account();
         toAccount.setId(2L);
-        toAccount.setAmount(BigDecimal.valueOf(400));
+        toAccount.setBalance(BigDecimal.valueOf(400));
+        toAccount.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
 
-        Account fromAccount = new Account();
-        fromAccount.setId(3L);
-        fromAccount.setAmount(BigDecimal.valueOf(400));
+        assertThrows(NotFoundException.class, () -> mockedBankSystemService.transfer(account.getAccountNumber(), toAccount.getAccountNumber(), BigDecimal.valueOf(400)));
 
-        assertThrows(NotFoundException.class, () -> mockedBankSystemService.transfer(fromAccount.getId(), toAccount.getId(), BigDecimal.valueOf(400)));
-
-        verify(mockedBankSystemRepository).findById(fromAccount.getId());
+        verify(mockedBankSystemRepository).findByAccountNumber(account.getAccountNumber());
     }
 
     @Test
     void onNotEnoughAccountTransferThrowsException() {
         Account toAccount = new Account();
         toAccount.setId(2L);
-        toAccount.setAmount(BigDecimal.valueOf(400));
+        toAccount.setBalance(BigDecimal.valueOf(400));
+        toAccount.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
 
-        when(mockedBankSystemRepository.findById(toAccount.getId())).thenReturn(Optional.of(toAccount));
-        when(mockedBankSystemRepository.findById(account.getId())).thenReturn(Optional.of(account));
 
-        assertThrows(NotEnoughAmountException.class, () -> mockedBankSystemService.transfer(account.getId(), toAccount.getId(), BigDecimal.valueOf(10000)));
+        when(mockedBankSystemRepository.findByAccountNumber(account.getAccountNumber())).thenReturn(Optional.of(account));
 
-        verify(mockedBankSystemRepository).findById(account.getId());
-        verify(mockedBankSystemRepository).findById(toAccount.getId());
-    }*/
+        assertThrows(NotEnoughAmountException.class, () -> mockedBankSystemService.transfer(account.getAccountNumber(), toAccount.getAccountNumber(), BigDecimal.valueOf(10000)));
+
+        verify(mockedBankSystemRepository).findByAccountNumber(account.getAccountNumber());
+
+    }
 }
