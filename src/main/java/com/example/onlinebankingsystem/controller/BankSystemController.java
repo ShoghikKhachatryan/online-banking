@@ -7,10 +7,7 @@ import com.example.onlinebankingsystem.service.BankSystemService;
 import com.example.onlinebankingsystem.util.AccountNumberGenerator;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
@@ -60,10 +57,11 @@ public class BankSystemController {
     }
 
     @PostMapping("/accounts/new")
-    public String creatAccount(@ModelAttribute Account account) {
+    public String creatAccount(@ModelAttribute Account account,
+                               @SessionAttribute(name = "userId") Long userId
+    ) {
         account.setAccountNumber(AccountNumberGenerator.generateAccountNumber());
-        bankSystemService.openNewAccount(account);
-
+        bankSystemService.openNewAccount(account, userId);
         return REDIRECT_HOME;
     }
 

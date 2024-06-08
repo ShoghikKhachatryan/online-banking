@@ -8,6 +8,11 @@
 <body class="text-center">
 <div class="container mt-5">
     <h1 class="mb-4">Sign Up</h1>
+    <div th:if="${message}">
+        <div class="alert alert-danger" role="alert">
+            <p th:text="${message}"></p>
+        </div>
+    </div>
     <form th:action="@{/signup}" method="post" class="mx-auto w-50">
         <div class="mb-3">
             <label for="username" class="form-label">Username</label>
