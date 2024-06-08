@@ -43,9 +43,7 @@ public class BankSystemController {
 
     private static final String MESSAGE_ATTRIBUTE = "message";
 
-    // - easier to see dependencies and amount of them
-    // - easier to mock in some cases
-    // - looks more natural
+
     public BankSystemController(BankSystemService bankSystemService) {
         this.bankSystemService = bankSystemService;
     }
