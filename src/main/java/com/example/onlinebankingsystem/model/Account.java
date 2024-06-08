@@ -7,7 +7,6 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "account")
 @NoArgsConstructor
 @Getter
 @Setter
@@ -29,6 +28,10 @@ public class Account {
 
     @Column(nullable = false)
     private BigDecimal balance;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     public Account(AccountType accountType, BigDecimal balance) {
         this.accountType = accountType;
