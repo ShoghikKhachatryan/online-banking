@@ -30,5 +30,6 @@ public class Profile {
     private String dataOfBirth;
 
     @OneToOne(mappedBy = "user_id", cascade = CascadeType.ALL)
+    @PrimaryKeyJoinColumn
     private User user;
 }
