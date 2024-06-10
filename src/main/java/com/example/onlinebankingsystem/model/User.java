@@ -26,8 +26,11 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @OneToMany(mappedBy = "user", cascade= CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade= CascadeType.ALL)
     private List<Account> accounts;
+
+    @OneToOne(mappedBy = "user", cascade= CascadeType.ALL)
+    private Profile profile;
 
     public User(String username, String password) {
         this.username = username;
